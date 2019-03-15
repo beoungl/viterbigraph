@@ -1,4 +1,6 @@
 import networkx as nx
+import numpy as np
+import pandas as pd
 
 mygraph = nx.DiGraph()
 
@@ -99,5 +101,53 @@ mygraph.add_edge('MIT', 'End', weight=0)
 mygraph.add_edge('Washington', 'End', weight=0)
 mygraph.add_edge('Wilmington', 'End', weight=0)
 mygraph.add_edge('Daytona Beach', 'End', weight=0)
+
+
+#Check the shortest path
+#print(nx.dijkstra_path(mygraph,'Start','End'))
+#print(nx.shortest_path(mygraph,'Start','End','weight'))
+
+
+
+#Initialize viterbi with start
+def viterbi(graph):
+    trace_list = []
+    for i in graph.adj['Start']:
+        smaller_list = []
+        for x in graph.adj[i]:
+            smaller_list.append((graph.adj[i][x]['weight'],x))
+        value = min(smaller_list)
+        trace_list.append(value)
+    big_list = [trace_list]
+    for i in range(6):
+        trace_list = viterbi_repeat(graph,trace_list)
+        big_list.append(trace_list)
+    this_list = []
+    for i in big_list:
+        this_list.append(min(i)[1])
+    return this_list,min(trace_list)
+
+#Repeat this for the next days.
+def viterbi_repeat(graph,some_list):
+    trace_list = []
+    for i in some_list:
+        smaller_list = []
+        for x in graph.adj[i[1]]:
+            smaller_list.append((graph.adj[i[1]][x]['weight'] + i[0],x))
+        value = min(smaller_list)
+        trace_list.append(value)
+    return trace_list
+
+
+#print the trace of the graph and the final destination with the distance.
+trace_list,final = viterbi(mygraph)
+trace_str = 'Tracing the transcontinental\n'
+for i in trace_list:
+    trace_str += i
+    if i != trace_list[-1]:
+        trace_str += ' -> '
+trace_str += '\nThe final destination is ' + final[1] + ' and it took ' + str(final[0]) + ' miles.'
+print(trace_str)
+
 
 
